@@ -1,0 +1,5 @@
+pandas==2.2.1
+rdkit==2023.9.5
+scipy==1.13.1
+timeout_decorator==0.5.0
+git+https://github.com/ersilia-os/smiles-to-3d.git
