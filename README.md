@@ -3,14 +3,25 @@ This package provides several evaluation metrics for identifying the best analog
 
 # Installation
 
-Create a conda environment and install the packages listed in requirements.txt
+Create a conda environment and install the packages listed in requirements.txt using pip:
+```bash
+conda create -n analogues python=3.11
+conda activate analogues
+pip install -r requirements.txt
+```
+
+Install the open source version of PyMol:
+```bash
+conda install -c conda-forge pymol-open-source
+```
+
 If the conformer generation is done with OpenBabel, the user wil need to install OpenBabel in the system.
 
 # Usage
 
 ```bash
 cd 3d-analogues
-python src/main.py -q example/query_mol.csv -s example/molecules.csv -o results 
+python src/main.py -q example/query_mol.csv -s example/molecules.csv -o results -cdpkit True
 ```
 
 # How it works
@@ -30,4 +41,7 @@ This package attempts the docking to a protein of interest. The following files 
 Optional: if a file named `residue_coords.json` is found in the `proteins` folder, the distance between the molecule and the selected protein residues will be calculated and used to decide the best conformer and pose of each docked molecule (`best_docking_results.csv`). Currently the docking score and the distance score weight 50% each. The results for all conformers (up to 10) and poses (up to 10) are stored in the indicated results folder under `all_docking_results.csv`.
 
 ## 3. 3D shape scorer
-TODO
+We use the VSFlow pipeline (please cite [Jung et al, 2023](https://jcheminf.biomedcentral.com/articles/10.1186/s13321-023-00703-1)if you use it) To calculate the following metrics of overlap between a query molecule and the list of smiles. If no query molecule is provided, the scorer will not run.
+* ComboScore
+* Shape Similarity
+* FP3D Similarity 

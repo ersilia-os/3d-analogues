@@ -1,6 +1,7 @@
 import os
 import argparse
 import subprocess
+import pandas as pd
 
 root = os.path.dirname(os.path.abspath(__file__))
 
@@ -29,6 +30,12 @@ def main() -> None:
         cmd = f"python {root}/docking.py {output_folder}"
         subprocess.Popen(cmd, shell=True).wait()
 
+        docking_results = pd.read_csv(os.path.join(output_folder, "best_docking_results.csv"))
+        confs = ["_".join(id.split("_")[:2]) for id in docking_results["conf_id"]]
+        docking_results.rename(columns={"conf_id": "pose_id"}, inplace=True)
+        docking_results["conf_id"] = confs
+        docking_results.to_csv(os.path.join(output_folder, "best_docking_results.csv"), index=False)
+
     else: 
         if cdpkit=="True":
             from smiles3d.smiles3d import generate_conformers
@@ -42,8 +49,23 @@ def main() -> None:
     
         cmd = f"python {root}/docking.py {output_folder}"
         subprocess.Popen(cmd, shell=True).wait()
+        
+        from vsflow3d.vsflow3d import run_vsflow
+        run_vsflow(os.path.join(output_folder, "conformer_query.sdf"), os.path.join(output_folder, "conformers.sdf"), output_folder)
+        
+        docking_results = pd.read_csv(os.path.join(output_folder, "best_docking_results.csv"))
+        confs = ["_".join(id.split("_")[:2]) for id in docking_results["conf_id"]]
+        docking_results.rename(columns={"conf_id": "pose_id"}, inplace=True)
+        docking_results["conf_id"] = confs
+        vsflow_results = pd.read_csv(os.path.join(output_folder, "vsflow_results.csv"))
+        ids = [id.split("_")[0] for id in vsflow_results["id"]]
+        vsflow_results.rename(columns={"id":"conf_id"}, inplace=True)
+        vsflow_results["id"] = ids
 
-
+        df = pd.merge(docking_results, vsflow_results, on=["id", "conf_id"], how = "left")
+        df = df[['id', 'conf_id', 'pose_id', 'smiles', 'querysmiles','docking_score', 'docking_rank', 'distance_score',
+                 'distance_rank', 'rank', 'idx_pose', 'ComboScore', 'ShapeSim', 'Fp3dSim']]
+        df.to_csv(os.path.join(output_folder, "all_results.csv"), index=False)
     
 
 def parseArgs() -> argparse.Namespace:
