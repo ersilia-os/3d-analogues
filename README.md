@@ -18,10 +18,13 @@ conda install -c conda-forge pymol-open-source
 If the conformer generation is done with OpenBabel, the user wil need to install OpenBabel in the system.
 
 # Usage
+We provide an example using data from Mediouni et al, 2019. Using DCA as a query molecule, and a list of 12 molecules (DCA and 11 analogues), we try the docking to the Tat1 HIV protein (1k5k_1.pdbqt from PDBank). 
+
+As a result, you will obtain the docking scores and 3D similarity to DCA.
 
 ```bash
 cd 3d-analogues
-python src/main.py -q example/query_mol.csv -s example/molecules.csv -o results -cdpkit True
+python src/main.py -q example/dca.csv -s example/mediouni2019.csv -o results -cdpkit True
 ```
 
 # How it works
@@ -41,7 +44,7 @@ This package attempts the docking to a protein of interest. The following files 
 Optional: if a file named `residue_coords.json` is found in the `proteins` folder, the distance between the molecule and the selected protein residues will be calculated and used to decide the best conformer and pose of each docked molecule (`best_docking_results.csv`). Currently the docking score and the distance score weight 50% each. The results for all conformers (up to 10) and poses (up to 10) are stored in the indicated results folder under `all_docking_results.csv`.
 
 ## 3. 3D shape scorer
-We use the VSFlow pipeline (please cite [Jung et al, 2023](https://jcheminf.biomedcentral.com/articles/10.1186/s13321-023-00703-1)if you use it) To calculate the following metrics of overlap between a query molecule and the list of smiles. If no query molecule is provided, the scorer will not run.
-* ComboScore
-* Shape Similarity
-* FP3D Similarity 
+We use the VSFlow pipeline (please cite [Jung et al, 2023](https://jcheminf.biomedcentral.com/articles/10.1186/s13321-023-00703-1)if you use it) To calculate the following metrics of overlap between a query molecule and the list of smiles. If no query molecule is provided, the scorer will not run. To facilitate the analysis, we only keep the best conformer according to the docking for screening. If you already have a preferred conformer for the query molecule, you can input that directly as an sdf file and it will be used. 
+* ComboScore: average of Shape Similarity and 3D Fingerprint Similarity
+* Shape Similarity: shape-based similarity (using RDKIT Open3DAlign)
+* FP3D Similarity: similarity calculated with 3D pharmacopore fingerprints (RDKIT Pharm2D)

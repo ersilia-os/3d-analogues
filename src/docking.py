@@ -16,10 +16,14 @@ BOX_COORDS =  os.path.join(root, "..", "proteins", "box_coords.json")
 
 
 class ProteinDocker():
-    def __init__(self, output_folder):
+    def __init__(self, output_folder, input_file):
         self.output_folder = output_folder
-        self.docking_result = os.path.join(self.output_folder, "docking_output.sdf")
-
+        self.input_file = input_file
+        if "_" in input_file:
+            self.docking_result = os.path.join(self.output_folder, f"docking_result_{input_file.split('_')[1].split('.')[0]}.sdf")
+        else:
+            self.docking_result = os.path.join(self.output_folder, "docking_result.sdf")
+        
 
     def _read_box_coords(self):
         if os.path.exists(BOX_COORDS):
@@ -37,7 +41,7 @@ class ProteinDocker():
         center_x = xyz[0]
         center_y = xyz[1]
         center_z = xyz[2]
-        ligands = os.path.join(self.output_folder, "conformers.sdf")
+        ligands = os.path.join(self.output_folder, self.input_file)
         log = os.path.join(self.output_folder, "log.txt")
         cmd = (
             SMINA
@@ -85,8 +89,8 @@ class ProteinDocker():
         return df
 
 class ResidueDistanceCalc(ProteinDocker):
-    def __init__(self, output_folder):
-        super().__init__(output_folder)
+    def __init__(self, output_folder, input_file):
+        super().__init__(output_folder, input_file)
 
     def _get_residue_coords(self):
         with open(RESIDUE_COORDS, 'r') as json_file:
@@ -186,11 +190,11 @@ class ResidueDistanceCalc(ProteinDocker):
         df["distance_rank"] = rankdata(df["distance_score"])
         return df
 
-def main(output_folder):
-    d = ProteinDocker(output_folder)
+def run(output_folder, input_file):
+    d = ProteinDocker(output_folder, input_file) 
     df1 = d.get_docking_score()
     if os.path.exists(RESIDUE_COORDS):
-        r = ResidueDistanceCalc(output_folder)
+        r = ResidueDistanceCalc(output_folder, input_file)
         df2 = r.get_distance_score()
         df = pd.merge(df1, df2, on=["id", "conf_id"], how="inner")
         df["rank"] = df.apply(lambda row: (row['distance_rank'] + row['docking_rank']) / 2, axis=1)
@@ -198,6 +202,13 @@ def main(output_folder):
         df["idx_pose"] = df.apply(lambda row: (row["idx_pose"]+1), axis=1)
         min_rank_indices = df.groupby('id')['rank'].idxmin()
         df_min = df.loc[min_rank_indices]
+        #rename in three columns, id, conf_id, pose_id
+        confs = ["_".join(id.split("_")[:2]) for id in df["conf_id"]]
+        df.rename(columns={"conf_id": "pose_id"}, inplace=True)
+        df["conf_id"] = confs
+        confs = ["_".join(id.split("_")[:2]) for id in df_min["conf_id"]]
+        df_min.rename(columns={"conf_id": "pose_id"}, inplace=True)
+        df_min["conf_id"] = confs
     else:
         df = df1
         df.rename(columns = {"docking_rank": "rank"}, inplace=True)
@@ -205,10 +216,22 @@ def main(output_folder):
         df["idx_pose"] = df.apply(lambda row: (row["idx_pose"]+1), axis=1)
         min_rank_indices = df.groupby('id')['rank'].idxmin()
         df_min = df.loc[min_rank_indices]
-    df.to_csv(os.path.join(output_folder, "all_docking_results.csv"), index=False)
-    df_min.to_csv(os.path.join(output_folder, "best_docking_results.csv"), index=False)
+        #rename in three columns, id, conf_id, pose_id
+        confs = ["_".join(id.split("_")[:2]) for id in df["conf_id"]]
+        df.rename(columns={"conf_id": "pose_id"}, inplace=True)
+        df["conf_id"] = confs
+        confs = ["_".join(id.split("_")[:2]) for id in df_min["conf_id"]]
+        df_min.rename(columns={"conf_id": "pose_id"}, inplace=True)
+        df_min["conf_id"] = confs
+    if "_" in str(input_file):
+        df.to_csv(os.path.join(output_folder, f"all_docking_results_{input_file.split('_')[1].split('.')[0]}.csv"), index=False)
+        df_min.to_csv(os.path.join(output_folder, f"best_docking_results_{input_file.split('_')[1].split('.')[0]}.csv"), index=False)
+    else:
+        df.to_csv(os.path.join(output_folder, "all_docking_results.csv"), index=False)
+        df_min.to_csv(os.path.join(output_folder, "best_docking_results.csv"), index=False)
 
 if __name__ == '__main__':
     output_folder = sys.argv[1]
-    main(output_folder)
+    input_file = sys.argv[2]
+    run(output_folder, input_file)
 
