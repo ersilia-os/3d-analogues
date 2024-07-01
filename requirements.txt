@@ -2,6 +2,12 @@ pandas==2.2.1
 rdkit==2023.9.5
 scipy==1.13.1
 timeout_decorator==0.5.0
-git+https://github.com/ersilia-os/smiles-to-3d
-git+https://github.com/ersilia-os/vsflow-ligand-based-3d-screening
+rdkit==2023.9.5
+matplotlib==3.8.4
+fpdf==1.7.2
+xlrd==2.0.1
+pdfrw==0.4
+xlsxwriter==3.1.9
+molvs==0.1.1
 git+https://github.com/czodrowskilab/VSFlow
+git+https://github.com/ersilia-os/smiles-to-3d

@@ -11,6 +11,7 @@ sys.path.append(abspath)
 
 import docking
 from utils import extract_best_conformer
+from vsflow3d import run_vsflow
 
 def main() -> None:
     args = parseArgs()
@@ -71,8 +72,6 @@ def main() -> None:
         best_conf = best_conf["conf_id"].tolist()
         extract_best_conformer(os.path.join(output_folder,"conformers.sdf"), best_conf, os.path.join(output_folder,"conformers_best.sdf"))
 
-
-        from vsflow3d.vsflow3d import run_vsflow
         run_vsflow(os.path.join(output_folder, "conformer_query_best.sdf"), os.path.join(output_folder, "conformers_best.sdf"), output_folder)
 
         # rename vsflow results for easier merging
