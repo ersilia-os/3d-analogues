@@ -15,6 +15,12 @@ Install the open source version of PyMol:
 conda install -c conda-forge pymol-open-source
 ```
 
+Install Open3D (needed for SenSaaSFlex)
+```bash
+wget https://anaconda.org/open3d-admin/open3d/0.12.0/download/linux-64/open3d-0.12.0-py38_0.tar.bz2
+conda install open3d-0.12.0-py38_0.tar.bz2
+```
+
 If the conformer generation is done with OpenBabel, the user wil need to install OpenBabel in the system.
 
 # Usage
@@ -24,17 +30,20 @@ As a result, you will obtain the docking scores and 3D similarity to DCA.
 
 ```bash
 cd 3d-analogues
-python src/main.py -q example/dca.csv -s example/mediouni2019.csv -o results -cdpkit True
+python src/main.py -q example/dca.csv -s example/mediouni2019.csv -o results --cdpkit True
 ```
 
 # How it works
-Using a starting molecule and a list of putative analogue candidates (we recommend looking at [ChemSampler](https://github.com/chem-sampler)) it will provide a numeric score based on twe metrics: docking to protein of interest and 3D colocalisation with query molecule
+Using a starting molecule and a list of putative analogue candidates (we recommend looking at [ChemSampler](https://github.com/chem-sampler)) it will provide a numeric score based on two metrics: docking to protein of interest and 3D colocalisation with query molecule
 
 ## 1. Conformer generation
 The first step is to convert the SMILES of the molecules into 3D conformers. We can do so with:
 * OpenBabel
 * CDPKit (flag -cdpkit True) - uses code from this [repository](https://github.com/ersilia-os/smiles-to-3d)
 In both cases it defaults to generating 10 conformers per molecule with the minimum energy.
+
+## 2. SenSaaSFlex
+The package SenSaaSFlex will align the conformers of each molecule into a static query molecule (the best experimentally determined conformer for the query or the docking-selected query conformer). As a result it gives a score (0 to 2) where 2 is the best score. The score is used to select the best conformer to move forward with docking.
 
 ## 2. Docking
 This package attempts the docking to a protein of interest. The following files are required in the `proteins` folder:

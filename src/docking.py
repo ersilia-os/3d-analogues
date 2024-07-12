@@ -24,7 +24,6 @@ class ProteinDocker():
         else:
             self.docking_result = os.path.join(self.output_folder, "docking_result.sdf")
         
-
     def _read_box_coords(self):
         if os.path.exists(BOX_COORDS):
             with open(BOX_COORDS, "r") as json_file:
@@ -61,12 +60,11 @@ class ProteinDocker():
             + f" --size_z {box} "
             + " --exhaustiveness 10 "
             + " --num_modes 9 "
-            + " --addH off "
             )
         subprocess.Popen(cmd, shell=True).wait()
     
     def _load_docking_results(self):
-        df = PandasTools.LoadSDF(self.docking_result, embedProps=True, molColName=None)
+        df = PandasTools.LoadSDF(self.docking_result, embedProps=True, molColName=None, removeHs=False)
         return df
     
     def get_docking_score(self):
@@ -98,7 +96,7 @@ class ResidueDistanceCalc(ProteinDocker):
         return residue_coords_dict
 
     def _extract_atom_coords_from_sdf(self, sdf_file):
-        sdf_supplier = Chem.SDMolSupplier(sdf_file)
+        sdf_supplier = Chem.SDMolSupplier(sdf_file, removeHs=False)
         positions = {}
         for mol in sdf_supplier:
             if mol is None:

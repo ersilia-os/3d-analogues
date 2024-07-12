@@ -1,0 +1,12 @@
+numpy
+addict
+ipywidgets
+matplotlib
+notebook
+pandas
+plyfile
+pyyaml
+scikit-learn
+tqdm
+widgetsnbextension
+rdkit
